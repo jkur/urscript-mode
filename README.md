@@ -1,13 +1,16 @@
-URScript Major Mode for Emacs
-=============================
+# URScript Major Mode for Emacs
 
 Programming URscript for Universal Robots (https://www.universal-robots.com) within your favorite editor Emacs.
 
-urscript-mode is derived from python-mode. URScript and Python have a lot in common.
+urscript-mode is built as a derived mode from prog-mode.
+
+It features keywords, function highlighting, built-in-functions.
 
 
-Installation
-------------
+## Screenshots
+![Some file in URscript with highlighting](screenshot.png)
+
+## Installation
 
 (load-file "~/path/to/urscript-mode.el")
 (require 'urscript-mode)
