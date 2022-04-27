@@ -4,7 +4,7 @@ Programming URscript for Universal Robots (https://www.universal-robots.com) wit
 
 urscript-mode is built as a derived mode from prog-mode.
 
-It features keywords, function highlighting, built-in-functions.
+It features keywords, function highlighting, built-in-functions and indentation.
 
 
 ## Screenshots
@@ -12,6 +12,8 @@ It features keywords, function highlighting, built-in-functions.
 
 ## Installation
 
+```elisp
 (load-file "~/path/to/urscript-mode.el")
 (require 'urscript-mode)
 (add-to-list 'auto-mode-alist '("\\.script\\'" . urscript-mode))
+```
