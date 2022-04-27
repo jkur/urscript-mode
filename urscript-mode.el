@@ -1,11 +1,12 @@
 ;; urscipt-mode.el
 ;; License: GPLv3
 
+(setq urscript-constants '("True" "False"))
+
+
 
 ;; define several category of keywords
-(setq urscript-keywords '("True"
-                          "False"
-                          "break"
+(setq urscript-keywords '("break"
                           "continue"
                           "def"
                           "elif"
@@ -36,15 +37,16 @@
 (setq urscript-type-regexp (regexp-opt urscript-types 'words))
 (setq urscript-operators-regexp (regexp-opt urscript-operators 'words))
 (setq urscript-builtin-functions-regexp (regexp-opt urscript-builtin-functions 'words))
-(setq urscript-function-name-regexp "\\([a-zA-Z][a-z_0-9A-Z]+\\)():")
-
-
+(setq urscript-function-name-regexp "def \\([a-zA-Z][a-z_0-9A-Z]+\\)(.*):")
+(setq urscript-constant-name-regexp (regexp-opt urscript-constants 'words))
+(setq urscript-type-regexp  "[p]\\[.*\\]")
 ;; create the list for font-lock.
 ;; each category of keyword is given a particular face
 (setq urscript-font-lock-keywords
       `(
-        ;;(,urscript-function-name-regexp . font-lock-function-name-face)
+        (,urscript-constant-name-regexp . font-lock-constant-face)
         (,urscript-builtin-functions-regexp . font-lock-builtin-face)
+        (,urscript-function-name-regexp 1 font-lock-function-name-face)
         (,urscript-keywords-regexp . font-lock-keyword-face)
         (,urscript-operators-regexp . font-lock-operators-face)
         (,urscript-type-regexp . font-lock-type-face)
@@ -52,12 +54,49 @@
         ;; in general, longer words first
         ))
 
+(defvar urscript-indent-level 4 "Indentation level")
+
+
+(defun urscript-indent-line ()
+  "Indent current line as URScript code."
+  (interactive)
+  (beginning-of-line)
+  (if (bobp)
+      (indent-line-to 0)   ; First line is always non-indented
+    (let ((not-indented t) cur-indent)
+      (if (looking-at "^[ \t]*\\(else\\|end\\|elif\\)") ; If the line we are looking at is the end of a block, then decrease the indentation
+          (progn
+            (save-excursion
+              (forward-line -1)
+              (setq cur-indent (- (current-indentation) urscript-indent-level)))
+            (if (< cur-indent 0) ; We can't indent past the left margin
+                (setq cur-indent 0)))
+        (save-excursion
+          (while not-indented ; Iterate backwards until we find an indentation hint
+            (forward-line -1)
+            (if (looking-at "^[ \t]*end") ; This hint indicates that we need to indent at the level of the END_ token
+                (progn
+                  (setq cur-indent (current-indentation))
+                  (setq not-indented nil))
+              (if (looking-at "^.*:$") ; This hint indicates that we need to indent an extra level
+                  (progn
+                    (setq cur-indent (+ (current-indentation) urscript-indent-level)) ; Do the actual indenting
+                    (setq not-indented nil))
+                (if (bobp)
+                    (setq not-indented nil)))))))
+      (if cur-indent
+          (indent-line-to cur-indent)
+        (indent-line-to 0))))) ; If we didn't see an indentation hint, then allow no indentation
+
+
 ;;;###autoload
-(define-derived-mode urscript-mode python-mode "urscript"
+(define-derived-mode urscript-mode prog-mode "urscript"
   "Major mode for editing URScript (Universal Robots Script Language)"
 
   ;; code for syntax highlighting
-  (setq font-lock-defaults '((urscript-font-lock-keywords))))
+(setq font-lock-defaults '(urscript-font-lock-keywords))
+(set (make-local-variable 'indent-line-function) 'urscript-indent-line)
+)
 
 ;; clear memory. no longer needed
 (setq urscript-keywords nil)
